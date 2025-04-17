@@ -9,6 +9,10 @@
         margin: 0;
         overflow: hidden;
         background-color: #000;
+        background-image: url("assets/img.png");
+        background-size: contain;
+        background-position: center;
+        background-repeat: no-repeat;
       }
       canvas {
         display: block;
@@ -65,10 +69,41 @@
         font-size: 14px;
         color: #aaa;
       }
+      #email-link {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: sans-serif;
+        font-size: 12px;
+        color: white;
+        text-decoration: none;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
     </style>
   </head>
   <body>
+    <a href="mailto:info@n-plus.industries" id="email-link"
+      >info@n-plus.industries</a
+    >
     <div id="controls">
+      <div class="control-group">
+        <h3>Global Controls</h3>
+        <div class="control-row">
+          <label for="global-blur">Global Blur</label>
+          <input
+            type="range"
+            id="global-blur"
+            min="0"
+            max="0.1"
+            step="0.001"
+            value="0.0"
+          />
+          <span class="value-display" id="global-blur-value">0.000</span>
+        </div>
+      </div>
+
       <div class="control-group">
         <h3>Threshold Controls</h3>
         <div class="control-row">
@@ -115,9 +150,9 @@
             min="0"
             max="0.5"
             step="0.01"
-            value="0.11"
+            value="0.02"
           />
-          <span class="value-display" id="max-blur-amount-value">0.11</span>
+          <span class="value-display" id="max-blur-amount-value">0.02</span>
         </div>
       </div>
 
@@ -179,7 +214,7 @@
             min="0"
             max="0.5"
             step="0.01"
-            value="0.1"
+            value="0.10"
           />
           <span class="value-display" id="bright-noise-amount-value">0.10</span>
         </div>
@@ -211,7 +246,7 @@
             min="0"
             max="1"
             step="0.01"
-            value="0.2"
+            value="0.20"
           />
           <span class="value-display" id="light-intensity-value">0.20</span>
         </div>
@@ -223,7 +258,7 @@
             min="0.1"
             max="1"
             step="0.01"
-            value="0.2"
+            value="0.20"
           />
           <span class="value-display" id="light-radius-value">0.20</span>
         </div>
@@ -239,9 +274,9 @@
             min="0"
             max="1"
             step="0.01"
-            value="0.01"
+            value="0.08"
           />
-          <span class="value-display" id="brush-threshold-value">0.01</span>
+          <span class="value-display" id="brush-threshold-value">0.08</span>
         </div>
         <div class="control-row">
           <label for="brush-hardness">Brush Hardness</label>
@@ -251,9 +286,9 @@
             min="0"
             max="1"
             step="0.01"
-            value="0.5"
+            value="0.55"
           />
-          <span class="value-display" id="brush-hardness-value">0.50</span>
+          <span class="value-display" id="brush-hardness-value">0.55</span>
         </div>
         <div class="control-row">
           <label for="brush-intensity">Brush Intensity</label>
@@ -263,7 +298,7 @@
             min="0"
             max="2"
             step="0.1"
-            value="1.0"
+            value="1.00"
           />
           <span class="value-display" id="brush-intensity-value">1.00</span>
         </div>
@@ -275,9 +310,9 @@
             min="0.1"
             max="10"
             step="0.1"
-            value="2.6"
+            value="2.00"
           />
-          <span class="value-display" id="brush-scale-value">2.60</span>
+          <span class="value-display" id="brush-scale-value">2.00</span>
         </div>
         <div class="control-row">
           <label for="brush-type">Brush Type</label>
@@ -295,9 +330,9 @@
             min="0"
             max="2"
             step="0.1"
-            value="0.5"
+            value="0.40"
           />
-          <span class="value-display" id="brush-speed-value">0.50</span>
+          <span class="value-display" id="brush-speed-value">0.40</span>
         </div>
         <div class="control-row">
           <label for="brush-pulse">Brush Pulse</label>
@@ -307,9 +342,9 @@
             min="0"
             max="1"
             step="0.01"
-            value="0.0"
+            value="0.28"
           />
-          <span class="value-display" id="brush-pulse-value">0.00</span>
+          <span class="value-display" id="brush-pulse-value">0.28</span>
         </div>
         <div class="control-row">
           <label for="brush-trail">Brush Trail</label>
@@ -319,7 +354,7 @@
             min="0"
             max="1"
             step="0.01"
-            value="0.0"
+            value="0.00"
           />
           <span class="value-display" id="brush-trail-value">0.00</span>
         </div>
@@ -331,7 +366,7 @@
             min="0"
             max="6.28"
             step="0.01"
-            value="0.0"
+            value="0.00"
           />
           <span class="value-display" id="brush-rotation-value">0.00</span>
         </div>
@@ -343,9 +378,9 @@
             min="0"
             max="1"
             step="0.01"
-            value="1.0"
+            value="0.74"
           />
-          <span class="value-display" id="brush-color-value">1.00</span>
+          <span class="value-display" id="brush-color-value">0.74</span>
         </div>
         <div class="control-row">
           <label for="brush-blend-mode">Brush Blend Mode</label>
@@ -355,6 +390,64 @@
             <option value="2">Subtractive</option>
           </select>
         </div>
+      </div>
+
+      <div class="control-group">
+        <label for="feather-amount">Feather Amount</label>
+        <input
+          type="range"
+          id="feather-amount"
+          min="0"
+          max="0.5"
+          step="0.001"
+          value="0.124"
+        />
+        <span id="feather-amount-value">0.124</span>
+      </div>
+
+      <div class="control-group">
+        <label for="vertical-disturbance-intensity"
+          >Vertical Disturbance Intensity</label
+        >
+        <input
+          type="range"
+          id="vertical-disturbance-intensity"
+          min="0"
+          max="0.001"
+          step="0.0001"
+          value="0.0"
+        />
+        <span id="vertical-disturbance-intensity-value">0.000</span>
+      </div>
+
+      <div class="control-group">
+        <label for="vertical-disturbance-frequency"
+          >Vertical Disturbance Frequency</label
+        >
+        <input
+          type="range"
+          id="vertical-disturbance-frequency"
+          min="0.1"
+          max="20.0"
+          step="0.1"
+          value="7.8"
+        />
+        <span id="vertical-disturbance-frequency-value">7.800</span>
+      </div>
+
+      <div class="control-group">
+        <label for="vertical-disturbance-speed"
+          >Vertical Disturbance Speed</label
+        >
+        <input
+          type="range"
+          id="vertical-disturbance-speed"
+          min="0.1"
+          max="5.0"
+          step="0.1"
+          value="2.9"
+        />
+        <span id="vertical-disturbance-speed-value">2.900</span>
       </div>
     </div>
 

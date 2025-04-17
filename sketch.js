@@ -5,8 +5,9 @@ let mouseX = 0,
 
 // Parametri controllati dagli slider
 let params = {
-  threshold: 0.13,
-  brushThreshold: 0.01,
+  threshold: 0.45,
+  brushThreshold: 0.08,
+  globalBlur: 0.0,
   noiseAmount: 0.05,
   noiseScale: 5.0,
   noiseSpeed: 0.005,
@@ -26,12 +27,17 @@ let params = {
   brushIntensity: 1.0,
   brushScale: 2.0,
   brushType: 0, // 0 = Circular
-  brushSpeed: 2.0,
-  brushPulse: 0.04,
-  brushTrail: 0.06,
+  brushSpeed: 0.4,
+  brushPulse: 0.28,
+  brushTrail: 0.0,
   brushRotation: 0.0,
   brushColor: 0.74,
   brushBlendMode: 0,
+  featherAmount: 0.124,
+  // Parametri per il disturbo verticale
+  verticalDisturbanceIntensity: 0.0,
+  verticalDisturbanceFrequency: 7.8,
+  verticalDisturbanceSpeed: 2.9,
 };
 
 // Funzione per il Simplex noise
@@ -107,6 +113,11 @@ const fragmentShader = `
   uniform float brushColor;
   uniform int brushBlendMode;
   uniform float brushThreshold;
+  uniform float globalBlur;
+  uniform float featherAmount;
+  uniform float verticalDisturbanceIntensity;
+  uniform float verticalDisturbanceFrequency;
+  uniform float verticalDisturbanceSpeed;
   varying vec2 vUv;
 
   // Funzione per ruotare un punto
@@ -154,6 +165,14 @@ const fragmentShader = `
     return dist;
   }
 
+  // Funzione per il disturbo verticale
+  float getVerticalDisturbance(vec2 uv, vec2 mousePos, float intensity) {
+    float dist = length(uv - mousePos);
+    float influence = 1.0 - smoothstep(0.0, 0.2, dist);
+    float noise = snoise(vec2(uv.x * verticalDisturbanceFrequency * 20.0, time * verticalDisturbanceSpeed)) * intensity * verticalDisturbanceIntensity;
+    return noise * influence;
+  }
+
   void main() {
     vec2 uv = vUv;
     vec4 color = vec4(0.0);
@@ -166,6 +185,10 @@ const fragmentShader = `
     float brushIntensityFactor = 1.0 - smoothstep(0.0, lightRadius * (1.0 - brushHardness * 0.9), distToMouse);
     brushIntensityFactor = pow(brushIntensityFactor, 1.0 + brushHardness * 2.0);
     brushIntensityFactor *= brushIntensity;
+    
+    // Aggiungi il disturbo verticale
+    float verticalDisturbance = getVerticalDisturbance(uv, mousePos, brushIntensityFactor);
+    uv.y += verticalDisturbance;
     
     // Calcola l'intensità del blur in base alla distanza dal mouse
     float blurIntensity = 0.0;
@@ -208,30 +231,64 @@ const fragmentShader = `
       color.rgb += brightNoise;
     }
     
-    // Aggiungi l'effetto di luce radiale se il layer è attivo
-    if (mouseLightLayer) {
-      float light = brushIntensityFactor * lightIntensity;
-      
-      // Applica la modalità di fusione
-      if (brushBlendMode == 1) { // Additivo
-        color.rgb += vec3(light * brushColor);
-      } else if (brushBlendMode == 2) { // Sottrattivo
-        color.rgb -= vec3(light * brushColor);
-      } else { // Normale
-        color.rgb = mix(color.rgb, vec3(brushColor), light);
-      }
-    }
-    
     // Applica il threshold con transizione smooth
     float brightness = (color.r + color.g + color.b) / 3.0;
     
     // Calcola il threshold interpolato tra brush e non-brush
     float interpolatedThreshold = mix(threshold, brushThreshold, brushIntensityFactor);
     
-    // Usa una transizione più netta ma ancora smooth
-    float t = smoothstep(interpolatedThreshold - 0.01, interpolatedThreshold + 0.01, brightness);
+    // Usa il featherAmount per tutti i threshold con una transizione più morbida
+    float t = smoothstep(interpolatedThreshold - featherAmount * 0.5, interpolatedThreshold + featherAmount * 0.5, brightness);
     
-    gl_FragColor = vec4(vec3(t), 1.0);
+    // Crea il colore finale con il threshold, mantenendo l'alpha
+    vec4 finalColor = vec4(vec3(t), t);
+    
+    // Applica il blur gaussiano alla fine
+    if (globalBlur > 0.0) {
+      vec4 blurredColor = vec4(0.0);
+      float totalWeight = 0.0;
+      
+      // Kernel per blur orizzontale
+      float kernel[9] = float[](
+        0.05, 0.1, 0.15, 0.2, 0.2, 0.15, 0.1, 0.05, 0.0
+      );
+      
+      // Applica il blur solo in orizzontale
+      for(int i = -4; i <= 4; i++) {
+        vec2 offset = vec2(float(i) * globalBlur, 0.0);
+        blurredColor += texture2D(tDiffuse, uv + offset) * kernel[i + 4];
+        totalWeight += kernel[i + 4];
+      }
+      
+      blurredColor = blurredColor / totalWeight;
+      float blurredBrightness = (blurredColor.r + blurredColor.g + blurredColor.b) / 3.0;
+      float blurredT = smoothstep(interpolatedThreshold - featherAmount * 0.5, interpolatedThreshold + featherAmount * 0.5, blurredBrightness);
+      
+      // Mix tra il colore originale e quello blurrato con una transizione più morbida
+      finalColor = mix(finalColor, vec4(vec3(blurredT), blurredT), globalBlur * 3.0);
+    }
+    
+    // Elimina l'alone bianco lampeggiante
+    if (mouseLightLayer) {
+      float light = brushIntensityFactor * lightIntensity;
+      light = clamp(light, 0.0, 1.0); // Limita l'intensità della luce
+      
+      // Applica la modalità di fusione
+      if (brushBlendMode == 1) { // Additivo
+        finalColor.rgb += vec3(light * brushColor);
+      } else if (brushBlendMode == 2) { // Sottrattivo
+        finalColor.rgb -= vec3(light * brushColor);
+      } else { // Normale
+        finalColor.rgb = mix(finalColor.rgb, vec3(brushColor), light);
+      }
+    }
+    
+    // Assicurati che i pixel neri siano completamente trasparenti
+    if (finalColor.rgb == vec3(0.0)) {
+      finalColor.a = 0.0;
+    }
+    
+    gl_FragColor = finalColor;
   }
 `;
 
@@ -255,6 +312,7 @@ function init() {
         tDiffuse: { value: texture },
         amount: { value: params.blurAmount },
         maxBlurAmount: { value: params.maxBlurAmount },
+        globalBlur: { value: params.globalBlur },
         threshold: { value: params.threshold },
         brushThreshold: { value: params.brushThreshold },
         noiseAmount: { value: params.noiseAmount },
@@ -280,6 +338,14 @@ function init() {
         brushRotation: { value: params.brushRotation },
         brushColor: { value: params.brushColor },
         brushBlendMode: { value: params.brushBlendMode },
+        featherAmount: { value: params.featherAmount },
+        verticalDisturbanceIntensity: {
+          value: params.verticalDisturbanceIntensity,
+        },
+        verticalDisturbanceFrequency: {
+          value: params.verticalDisturbanceFrequency,
+        },
+        verticalDisturbanceSpeed: { value: params.verticalDisturbanceSpeed },
       },
       vertexShader: vertexShader,
       fragmentShader: fragmentShader,
@@ -298,6 +364,29 @@ function init() {
 }
 
 function setupControls() {
+  // Feather Amount control
+  const featherAmountSlider = document.getElementById("feather-amount");
+  const featherAmountValue = document.getElementById("feather-amount-value");
+  featherAmountSlider.value = params.featherAmount;
+  featherAmountValue.textContent = params.featherAmount.toFixed(3);
+  featherAmountSlider.addEventListener("input", (e) => {
+    const value = parseFloat(e.target.value);
+    document.getElementById("feather-amount-value").textContent =
+      value.toFixed(3);
+    material.uniforms.featherAmount.value = value;
+  });
+
+  // Global Blur control
+  const globalBlurSlider = document.getElementById("global-blur");
+  const globalBlurValue = document.getElementById("global-blur-value");
+  globalBlurSlider.value = params.globalBlur;
+  globalBlurValue.textContent = params.globalBlur.toFixed(3);
+  globalBlurSlider.addEventListener("input", (e) => {
+    const value = parseFloat(e.target.value);
+    document.getElementById("global-blur-value").textContent = value.toFixed(3);
+    material.uniforms.globalBlur.value = value;
+  });
+
   // Threshold control
   const thresholdSlider = document.getElementById("threshold");
   const thresholdValue = document.getElementById("threshold-value");
@@ -572,6 +661,56 @@ function setupControls() {
     document.getElementById("brush-threshold-value").textContent =
       value.toFixed(2);
     material.uniforms.brushThreshold.value = value;
+  });
+
+  // Vertical Disturbance Intensity
+  const verticalDisturbanceIntensitySlider = document.getElementById(
+    "vertical-disturbance-intensity"
+  );
+  const verticalDisturbanceIntensityValue = document.getElementById(
+    "vertical-disturbance-intensity-value"
+  );
+  verticalDisturbanceIntensitySlider.value =
+    params.verticalDisturbanceIntensity;
+  verticalDisturbanceIntensityValue.textContent =
+    params.verticalDisturbanceIntensity.toFixed(3);
+  verticalDisturbanceIntensitySlider.addEventListener("input", (e) => {
+    const value = parseFloat(e.target.value);
+    verticalDisturbanceIntensityValue.textContent = value.toFixed(3);
+    material.uniforms.verticalDisturbanceIntensity.value = value;
+  });
+
+  // Vertical Disturbance Frequency
+  const verticalDisturbanceFrequencySlider = document.getElementById(
+    "vertical-disturbance-frequency"
+  );
+  const verticalDisturbanceFrequencyValue = document.getElementById(
+    "vertical-disturbance-frequency-value"
+  );
+  verticalDisturbanceFrequencySlider.value =
+    params.verticalDisturbanceFrequency;
+  verticalDisturbanceFrequencyValue.textContent =
+    params.verticalDisturbanceFrequency.toFixed(3);
+  verticalDisturbanceFrequencySlider.addEventListener("input", (e) => {
+    const value = parseFloat(e.target.value);
+    verticalDisturbanceFrequencyValue.textContent = value.toFixed(3);
+    material.uniforms.verticalDisturbanceFrequency.value = value;
+  });
+
+  // Vertical Disturbance Speed
+  const verticalDisturbanceSpeedSlider = document.getElementById(
+    "vertical-disturbance-speed"
+  );
+  const verticalDisturbanceSpeedValue = document.getElementById(
+    "vertical-disturbance-speed-value"
+  );
+  verticalDisturbanceSpeedSlider.value = params.verticalDisturbanceSpeed;
+  verticalDisturbanceSpeedValue.textContent =
+    params.verticalDisturbanceSpeed.toFixed(3);
+  verticalDisturbanceSpeedSlider.addEventListener("input", (e) => {
+    const value = parseFloat(e.target.value);
+    verticalDisturbanceSpeedValue.textContent = value.toFixed(3);
+    material.uniforms.verticalDisturbanceSpeed.value = value;
   });
 }
 
