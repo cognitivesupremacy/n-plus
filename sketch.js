@@ -5,32 +5,33 @@ let mouseX = 0,
 
 // Parametri controllati dagli slider
 let params = {
-  threshold: 0.5,
+  threshold: 0.13,
+  brushThreshold: 0.01,
   noiseAmount: 0.05,
   noiseScale: 5.0,
   noiseSpeed: 0.005,
   blurAmount: 0.0,
-  maxBlurAmount: 0.11,
+  maxBlurAmount: 0.02,
   brightNoiseAmount: 0.1,
   brightNoiseScale: 10.0,
   lightIntensity: 0.2,
   lightRadius: 0.2,
   // Layer visibility - tutti disattivati di default
-  blurLayer: true, // Manteniamo il blur layer attivo per l'effetto mouse
+  blurLayer: true,
   noiseLayer: false,
   brightNoiseLayer: false,
   mouseLightLayer: false,
   // Nuovi parametri per il brush del mouse
-  brushHardness: 0.5, // Durezza del bordo del brush (0 = sfumato, 1 = netto)
-  brushIntensity: 1.0, // Intensità complessiva dell'effetto brush
-  brushScale: 2.6, // Scala del brush
-  brushType: 0, // Tipo di brush (0 = circolare, 1 = quadrato, 2 = noise)
-  brushSpeed: 0.5, // Velocità di animazione del brush
-  brushPulse: 0.0, // Pulsazione del brush (0 = nessuna, 1 = massima)
-  brushTrail: 0.0, // Scia del brush (0 = nessuna, 1 = massima)
-  brushRotation: 0.0, // Rotazione del brush
-  brushColor: 1.0, // Colore del brush (0 = nero, 1 = bianco)
-  brushBlendMode: 0, // Modalità di fusione (0 = normale, 1 = additivo, 2 = sottrattivo)
+  brushHardness: 0.55,
+  brushIntensity: 1.0,
+  brushScale: 2.0,
+  brushType: 0, // 0 = Circular
+  brushSpeed: 2.0,
+  brushPulse: 0.04,
+  brushTrail: 0.06,
+  brushRotation: 0.0,
+  brushColor: 0.74,
+  brushBlendMode: 0,
 };
 
 // Funzione per il Simplex noise
@@ -105,6 +106,7 @@ const fragmentShader = `
   uniform float brushRotation;
   uniform float brushColor;
   uniform int brushBlendMode;
+  uniform float brushThreshold;
   varying vec2 vUv;
 
   // Funzione per ruotare un punto
@@ -220,9 +222,15 @@ const fragmentShader = `
       }
     }
     
-    // Applica il threshold
+    // Applica il threshold con transizione smooth
     float brightness = (color.r + color.g + color.b) / 3.0;
-    float t = step(threshold, brightness);
+    
+    // Calcola il threshold interpolato tra brush e non-brush
+    float interpolatedThreshold = mix(threshold, brushThreshold, brushIntensityFactor);
+    
+    // Usa una transizione più netta ma ancora smooth
+    float t = smoothstep(interpolatedThreshold - 0.01, interpolatedThreshold + 0.01, brightness);
+    
     gl_FragColor = vec4(vec3(t), 1.0);
   }
 `;
@@ -248,6 +256,7 @@ function init() {
         amount: { value: params.blurAmount },
         maxBlurAmount: { value: params.maxBlurAmount },
         threshold: { value: params.threshold },
+        brushThreshold: { value: params.brushThreshold },
         noiseAmount: { value: params.noiseAmount },
         noiseScale: { value: params.noiseScale },
         time: { value: 0.0 },
@@ -292,6 +301,8 @@ function setupControls() {
   // Threshold control
   const thresholdSlider = document.getElementById("threshold");
   const thresholdValue = document.getElementById("threshold-value");
+  thresholdSlider.value = params.threshold;
+  thresholdValue.textContent = params.threshold.toFixed(2);
   thresholdSlider.addEventListener("input", (e) => {
     const value = parseFloat(e.target.value);
     document.getElementById("threshold-value").textContent = value.toFixed(2);
@@ -300,6 +311,7 @@ function setupControls() {
 
   // Blur Layer control
   const blurLayerCheckbox = document.getElementById("blur-layer");
+  blurLayerCheckbox.checked = params.blurLayer;
   blurLayerCheckbox.addEventListener("change", (e) => {
     params.blurLayer = e.target.checked;
     if (material) material.uniforms.blurLayer.value = params.blurLayer;
@@ -308,6 +320,8 @@ function setupControls() {
   // Blur Amount control
   const blurAmountSlider = document.getElementById("blur-amount");
   const blurAmountValue = document.getElementById("blur-amount-value");
+  blurAmountSlider.value = params.blurAmount;
+  blurAmountValue.textContent = params.blurAmount.toFixed(3);
   blurAmountSlider.addEventListener("input", (e) => {
     const value = parseFloat(e.target.value);
     document.getElementById("blur-amount-value").textContent = value.toFixed(3);
@@ -317,6 +331,8 @@ function setupControls() {
   // Max Blur Amount control
   const maxBlurAmountSlider = document.getElementById("max-blur-amount");
   const maxBlurAmountValue = document.getElementById("max-blur-amount-value");
+  maxBlurAmountSlider.value = params.maxBlurAmount;
+  maxBlurAmountValue.textContent = params.maxBlurAmount.toFixed(2);
   maxBlurAmountSlider.addEventListener("input", (e) => {
     const value = parseFloat(e.target.value);
     document.getElementById("max-blur-amount-value").textContent =
@@ -326,6 +342,7 @@ function setupControls() {
 
   // Noise Layer control
   const noiseLayerCheckbox = document.getElementById("noise-layer");
+  noiseLayerCheckbox.checked = params.noiseLayer;
   noiseLayerCheckbox.addEventListener("change", (e) => {
     params.noiseLayer = e.target.checked;
     if (material) material.uniforms.noiseLayer.value = params.noiseLayer;
@@ -334,6 +351,8 @@ function setupControls() {
   // Noise Amount control
   const noiseAmountSlider = document.getElementById("noise-amount");
   const noiseAmountValue = document.getElementById("noise-amount-value");
+  noiseAmountSlider.value = params.noiseAmount;
+  noiseAmountValue.textContent = params.noiseAmount.toFixed(2);
   noiseAmountSlider.addEventListener("input", (e) => {
     const value = parseFloat(e.target.value);
     document.getElementById("noise-amount-value").textContent =
@@ -344,6 +363,8 @@ function setupControls() {
   // Noise Scale control
   const noiseScaleSlider = document.getElementById("noise-scale");
   const noiseScaleValue = document.getElementById("noise-scale-value");
+  noiseScaleSlider.value = params.noiseScale;
+  noiseScaleValue.textContent = params.noiseScale.toFixed(0);
   noiseScaleSlider.addEventListener("input", (e) => {
     const value = parseFloat(e.target.value);
     document.getElementById("noise-scale-value").textContent = value.toFixed(0);
@@ -353,6 +374,8 @@ function setupControls() {
   // Noise Speed control
   const noiseSpeedSlider = document.getElementById("noise-speed");
   const noiseSpeedValue = document.getElementById("noise-speed-value");
+  noiseSpeedSlider.value = params.noiseSpeed;
+  noiseSpeedValue.textContent = params.noiseSpeed.toFixed(3);
   noiseSpeedSlider.addEventListener("input", (e) => {
     const value = parseFloat(e.target.value);
     document.getElementById("noise-speed-value").textContent = value.toFixed(3);
@@ -362,6 +385,7 @@ function setupControls() {
   // Bright Noise Layer control
   const brightNoiseLayerCheckbox =
     document.getElementById("bright-noise-layer");
+  brightNoiseLayerCheckbox.checked = params.brightNoiseLayer;
   brightNoiseLayerCheckbox.addEventListener("change", (e) => {
     params.brightNoiseLayer = e.target.checked;
     if (material)
@@ -375,6 +399,8 @@ function setupControls() {
   const brightNoiseAmountValue = document.getElementById(
     "bright-noise-amount-value"
   );
+  brightNoiseAmountSlider.value = params.brightNoiseAmount;
+  brightNoiseAmountValue.textContent = params.brightNoiseAmount.toFixed(2);
   brightNoiseAmountSlider.addEventListener("input", (e) => {
     const value = parseFloat(e.target.value);
     document.getElementById("bright-noise-amount-value").textContent =
@@ -387,6 +413,8 @@ function setupControls() {
   const brightNoiseScaleValue = document.getElementById(
     "bright-noise-scale-value"
   );
+  brightNoiseScaleSlider.value = params.brightNoiseScale;
+  brightNoiseScaleValue.textContent = params.brightNoiseScale.toFixed(0);
   brightNoiseScaleSlider.addEventListener("input", (e) => {
     const value = parseFloat(e.target.value);
     document.getElementById("bright-noise-scale-value").textContent =
@@ -396,6 +424,7 @@ function setupControls() {
 
   // Mouse Light Layer control
   const mouseLightLayerCheckbox = document.getElementById("mouse-light-layer");
+  mouseLightLayerCheckbox.checked = params.mouseLightLayer;
   mouseLightLayerCheckbox.addEventListener("change", (e) => {
     params.mouseLightLayer = e.target.checked;
     if (material)
@@ -405,6 +434,8 @@ function setupControls() {
   // Light Intensity control
   const lightIntensitySlider = document.getElementById("light-intensity");
   const lightIntensityValue = document.getElementById("light-intensity-value");
+  lightIntensitySlider.value = params.lightIntensity;
+  lightIntensityValue.textContent = params.lightIntensity.toFixed(2);
   lightIntensitySlider.addEventListener("input", (e) => {
     const value = parseFloat(e.target.value);
     document.getElementById("light-intensity-value").textContent =
@@ -415,6 +446,8 @@ function setupControls() {
   // Light Radius control
   const lightRadiusSlider = document.getElementById("light-radius");
   const lightRadiusValue = document.getElementById("light-radius-value");
+  lightRadiusSlider.value = params.lightRadius;
+  lightRadiusValue.textContent = params.lightRadius.toFixed(2);
   lightRadiusSlider.addEventListener("input", (e) => {
     const value = parseFloat(e.target.value);
     document.getElementById("light-radius-value").textContent =
@@ -425,6 +458,8 @@ function setupControls() {
   // Brush Hardness control
   const brushHardnessSlider = document.getElementById("brush-hardness");
   const brushHardnessValue = document.getElementById("brush-hardness-value");
+  brushHardnessSlider.value = params.brushHardness;
+  brushHardnessValue.textContent = params.brushHardness.toFixed(2);
   brushHardnessSlider.addEventListener("input", (e) => {
     const value = parseFloat(e.target.value);
     document.getElementById("brush-hardness-value").textContent =
@@ -435,6 +470,8 @@ function setupControls() {
   // Brush Intensity control
   const brushIntensitySlider = document.getElementById("brush-intensity");
   const brushIntensityValue = document.getElementById("brush-intensity-value");
+  brushIntensitySlider.value = params.brushIntensity;
+  brushIntensityValue.textContent = params.brushIntensity.toFixed(2);
   brushIntensitySlider.addEventListener("input", (e) => {
     const value = parseFloat(e.target.value);
     document.getElementById("brush-intensity-value").textContent =
@@ -445,6 +482,8 @@ function setupControls() {
   // Brush Scale control
   const brushScaleSlider = document.getElementById("brush-scale");
   const brushScaleValue = document.getElementById("brush-scale-value");
+  brushScaleSlider.value = params.brushScale;
+  brushScaleValue.textContent = params.brushScale.toFixed(2);
   brushScaleSlider.addEventListener("input", (e) => {
     const value = parseFloat(e.target.value);
     document.getElementById("brush-scale-value").textContent = value.toFixed(2);
@@ -453,6 +492,7 @@ function setupControls() {
 
   // Brush Type control
   const brushTypeSelect = document.getElementById("brush-type");
+  brushTypeSelect.value = params.brushType;
   brushTypeSelect.addEventListener("change", (e) => {
     const value = parseInt(e.target.value);
     material.uniforms.brushType.value = value;
@@ -461,6 +501,8 @@ function setupControls() {
   // Brush Speed control
   const brushSpeedSlider = document.getElementById("brush-speed");
   const brushSpeedValue = document.getElementById("brush-speed-value");
+  brushSpeedSlider.value = params.brushSpeed;
+  brushSpeedValue.textContent = params.brushSpeed.toFixed(2);
   brushSpeedSlider.addEventListener("input", (e) => {
     const value = parseFloat(e.target.value);
     document.getElementById("brush-speed-value").textContent = value.toFixed(2);
@@ -470,6 +512,8 @@ function setupControls() {
   // Brush Pulse control
   const brushPulseSlider = document.getElementById("brush-pulse");
   const brushPulseValue = document.getElementById("brush-pulse-value");
+  brushPulseSlider.value = params.brushPulse;
+  brushPulseValue.textContent = params.brushPulse.toFixed(2);
   brushPulseSlider.addEventListener("input", (e) => {
     const value = parseFloat(e.target.value);
     document.getElementById("brush-pulse-value").textContent = value.toFixed(2);
@@ -479,6 +523,8 @@ function setupControls() {
   // Brush Trail control
   const brushTrailSlider = document.getElementById("brush-trail");
   const brushTrailValue = document.getElementById("brush-trail-value");
+  brushTrailSlider.value = params.brushTrail;
+  brushTrailValue.textContent = params.brushTrail.toFixed(2);
   brushTrailSlider.addEventListener("input", (e) => {
     const value = parseFloat(e.target.value);
     document.getElementById("brush-trail-value").textContent = value.toFixed(2);
@@ -488,6 +534,8 @@ function setupControls() {
   // Brush Rotation control
   const brushRotationSlider = document.getElementById("brush-rotation");
   const brushRotationValue = document.getElementById("brush-rotation-value");
+  brushRotationSlider.value = params.brushRotation;
+  brushRotationValue.textContent = params.brushRotation.toFixed(2);
   brushRotationSlider.addEventListener("input", (e) => {
     const value = parseFloat(e.target.value);
     document.getElementById("brush-rotation-value").textContent =
@@ -498,6 +546,8 @@ function setupControls() {
   // Brush Color control
   const brushColorSlider = document.getElementById("brush-color");
   const brushColorValue = document.getElementById("brush-color-value");
+  brushColorSlider.value = params.brushColor;
+  brushColorValue.textContent = params.brushColor.toFixed(2);
   brushColorSlider.addEventListener("input", (e) => {
     const value = parseFloat(e.target.value);
     document.getElementById("brush-color-value").textContent = value.toFixed(2);
@@ -506,9 +556,22 @@ function setupControls() {
 
   // Brush Blend Mode control
   const brushBlendModeSelect = document.getElementById("brush-blend-mode");
+  brushBlendModeSelect.value = params.brushBlendMode;
   brushBlendModeSelect.addEventListener("change", (e) => {
     const value = parseInt(e.target.value);
     material.uniforms.brushBlendMode.value = value;
+  });
+
+  // Brush Threshold control
+  const brushThresholdSlider = document.getElementById("brush-threshold");
+  const brushThresholdValue = document.getElementById("brush-threshold-value");
+  brushThresholdSlider.value = params.brushThreshold;
+  brushThresholdValue.textContent = params.brushThreshold.toFixed(2);
+  brushThresholdSlider.addEventListener("input", (e) => {
+    const value = parseFloat(e.target.value);
+    document.getElementById("brush-threshold-value").textContent =
+      value.toFixed(2);
+    material.uniforms.brushThreshold.value = value;
   });
 }
 
