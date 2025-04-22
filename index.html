@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>N+</title>
+    <link rel="icon" type="image/png" href="assets/fav.png" />
     <style>
       @font-face {
         font-family: "Geist";
@@ -24,15 +25,16 @@
         width: 100%;
         font-family: "Geist", sans-serif;
         background: url("assets/back.png") no-repeat center center fixed;
-        background-position: calc(50%) calc(53%); /* esempio */
+        background-position: calc(50%) calc(53%);
         background-size: cover;
+        background-color: black;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         color: white;
         text-align: center;
-        font-size: 16px;
+        font-size: 14px;
       }
 
       .top-type,
@@ -57,11 +59,7 @@
         line-height: 1.1;
         position: absolute;
         bottom: 30px;
-      }
-
-      .top-type,
-      .center-type,
-      .bottom-paragraph {
+        /* opacity: 0.9; */
       }
 
       .email {
@@ -72,20 +70,14 @@
       }
 
       @media (max-width: 600px) {
-        .bottom-paragraph {
-          font-size: 18px;
-        }
       }
     </style>
   </head>
+
   <body>
     <img src="assets/n+.png" class="top-type" />
     <img src="assets/cs.png" class="center-type" />
-    <p
-      class="bottom-paragraph"
-      data-blur-text="N+ Industries pioneers neural augmentation, creating cutting-edge technologies that expand, protect,
-and transform the way the mind interacts with memory and perception."
-    >
+    <p class="bottom-paragraph">
       N+ Industries pioneers neural augmentation, creating cutting-edge
       technologies that expand, protect,<br />
       and transform the way the mind interacts with memory and perception.
