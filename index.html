@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>N+</title>
-    <link rel="icon" type="image/png" href="assets/fav.png" />
+    <link rel="icon" type="image/png" href="assets/ico.png" />
     <style>
       @font-face {
         font-family: "Geist";
@@ -24,8 +24,8 @@
         height: 100%;
         width: 100%;
         font-family: "Geist", sans-serif;
-        background: url("assets/back.png") no-repeat center center fixed;
-        background-position: calc(50%) calc(53%);
+        background: url("assets/back-x.png") no-repeat center center fixed;
+        background-position: calc(50%) calc(50%);
         background-size: cover;
         background-color: black;
         display: flex;
@@ -37,29 +37,28 @@
         font-size: 14px;
       }
 
-      .top-type,
-      .center-type {
+      .n-type {
+        margin-bottom: 7px;
+        width: 100%;
+      }
+
+      .cs-type {
+        top: 30px;
         width: calc(100vw - 60px);
+        transform: translateY(-50%);
         left: 30px;
         position: absolute;
-        mix-blend-mode: screen;
-      }
-
-      .top-type {
-        top: 30px;
-      }
-
-      .center-type {
-        top: 50%;
-        transform: translateY(-50%);
       }
 
       .bottom-paragraph {
-        max-width: 90vw;
-        line-height: 1.1;
-        position: absolute;
+      }
+
+      .bottom {
+        width: calc(100vw - 60px);
+        left: 30px;
         bottom: 30px;
-        /* opacity: 0.9; */
+        position: absolute;
+        align-items: center;
       }
 
       .email {
@@ -75,15 +74,17 @@
   </head>
 
   <body>
-    <img src="assets/n+.png" class="top-type" />
-    <img src="assets/cs.png" class="center-type" />
-    <p class="bottom-paragraph">
-      N+ Industries pioneers neural augmentation, creating cutting-edge
-      technologies that expand, protect,<br />
-      and transform the way the mind interacts with memory and perception.
-      <a href="mailto:info@n-plus.industries" class="email"
-        >info@n-plus.industries</a
-      >
-    </p>
+    <img src="assets/cs.png" class="cs-type" />
+    <div class="bottom">
+      <img src="assets/n+.png" class="n-type" />
+      <p class="bottom-paragraph">
+        N+ Industries pioneers neural augmentation, creating cutting-edge
+        technologies that expand, protect,<br />
+        and transform the way the mind interacts with memory and perception.
+        <a href="mailto:info@n-plus.industries" class="email"
+          >info@n-plus.industries</a
+        >
+      </p>
+    </div>
   </body>
 </html>
