@@ -35,19 +35,26 @@
         color: white;
         text-align: center;
         font-size: 14px;
+        line-height: 1.3;
+        overflow: hidden;
       }
 
-      .n-type {
-        margin-bottom: 7px;
-        width: 100%;
+      ::selection {
+        background: white; /* Sfondo bianco */
+        color: rgba(0, 0, 0, 0.5); /* Testo nero con 50% di trasparenza */
       }
 
       .cs-type {
         top: 30px;
         width: calc(100vw - 60px);
-        transform: translateY(-50%);
+
         left: 30px;
         position: absolute;
+      }
+
+      .n-type {
+        margin-bottom: 7px;
+        width: 100%;
       }
 
       .bottom-paragraph {
@@ -68,18 +75,28 @@
         text-transform: uppercase;
       }
 
-      @media (max-width: 600px) {
+      @media (max-width: 800px) {
+        .cs-type {
+        }
+
+        .n-type {
+        }
+
+        .desktop {
+          display: none;
+        }
       }
     </style>
   </head>
 
   <body>
     <img src="assets/cs.png" class="cs-type" />
+
     <div class="bottom">
       <img src="assets/n+.png" class="n-type" />
       <p class="bottom-paragraph">
         N+ Industries pioneers neural augmentation, creating cutting-edge
-        technologies that expand, protect,<br />
+        technologies that expand, protect, <br class="desktop" />
         and transform the way the mind interacts with memory and perception.
         <a href="mailto:info@n-plus.industries" class="email"
           >info@n-plus.industries</a
@@ -87,4 +104,30 @@
       </p>
     </div>
   </body>
+
+  <script>
+    function updateImages() {
+      const nImages = document.querySelectorAll(".n-type");
+      const csImages = document.querySelectorAll(".cs-type");
+
+      nImages.forEach((img) => {
+        if (window.innerWidth <= 800) {
+          img.src = "assets/n+-m.png";
+        } else {
+          img.src = "assets/n+.png";
+        }
+      });
+
+      csImages.forEach((img) => {
+        if (window.innerWidth <= 800) {
+          img.src = "assets/cs-m.png";
+        } else {
+          img.src = "assets/cs.png";
+        }
+      });
+    }
+
+    window.addEventListener("resize", updateImages);
+    window.addEventListener("load", updateImages);
+  </script>
 </html>
