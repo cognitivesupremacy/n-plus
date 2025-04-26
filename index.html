@@ -25,7 +25,7 @@
         width: 100%;
         font-family: "Geist", sans-serif;
         background: url("assets/back-x.png") no-repeat center center fixed;
-        background-position: calc(50%) calc(50%);
+        background-position: calc(50%) calc(60%);
         background-size: cover;
         background-color: black;
         display: flex;
@@ -45,9 +45,14 @@
       }
 
       .cs-type {
-        top: 30px;
-        width: calc(100vw - 60px);
+        top: 27px;
 
+        left: 30px;
+      }
+
+      .cs-type,
+      .bottom {
+        width: calc(100vw - 60px);
         left: 30px;
         position: absolute;
       }
@@ -61,10 +66,8 @@
       }
 
       .bottom {
-        width: calc(100vw - 60px);
-        left: 30px;
         bottom: 30px;
-        position: absolute;
+
         align-items: center;
       }
 
@@ -76,6 +79,9 @@
       }
 
       @media (max-width: 800px) {
+        body {
+          font-size: 12px;
+        }
         .cs-type {
         }
 
@@ -84,6 +90,21 @@
 
         .desktop {
           display: none;
+        }
+
+        /* .cs-type {
+          top: 30px;
+        }
+
+        .bottom {
+          bottom: 10px;
+        } */
+
+        .cs-type,
+        .bottom {
+          width: calc(100vw - 30px);
+          left: 15px;
+          position: absolute;
         }
       }
     </style>
