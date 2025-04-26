@@ -6,15 +6,22 @@
     <meta http-equiv="ScreenOrientation" content="autoRotate:disabled" />
     <title>N+</title>
     <link rel="icon" type="image/png" href="assets/ico.png" />
+    <link
+      rel="preload"
+      href="subset-Geist-Regular.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="subset-Geist-Medium.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
 
     <style>
-      @font-face {
-        font-family: "Geist";
-        src: url("assets/Geist/static/Geist-Medium.ttf") format("truetype");
-        font-weight: 500;
-        font-style: normal;
-      }
-
       * {
         margin: 0;
         padding: 0;
@@ -26,7 +33,8 @@
         height: 100%;
         width: 100%;
         font-family: "Geist", sans-serif;
-        background: url("assets/back-x.png") no-repeat center center fixed;
+        font-weight: 500;
+        background: url("assets/back.jpg") no-repeat center center fixed;
         background-position: calc(50%) calc(60%);
         background-size: cover;
         background-color: black;
@@ -107,16 +115,6 @@
           width: calc(100vw - 30px);
           left: 15px;
           position: absolute;
-        }
-
-        @media (orientation: landscape) {
-          body {
-            background-position: center center;
-            background-size: cover;
-          }
-          .bottom-paragraph {
-            font-size: 13pt;
-          }
         }
       }
     </style>
