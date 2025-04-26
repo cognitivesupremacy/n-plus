@@ -47,7 +47,7 @@
         height: 100%;
         width: 100%;
         font-family: "Geist", sans-serif;
-        font-weight: 500;
+        font-weight: 400;
         background: url("assets/back.jpg") no-repeat center center fixed;
         background-position: calc(50%) calc(60%);
         background-size: cover;
@@ -70,7 +70,6 @@
 
       .cs-type {
         top: 27px;
-
         left: 30px;
       }
 
@@ -171,6 +170,17 @@
         }
       });
     }
+
+    // let currentBackground = 1; // parte da 1
+    // const totalBackgrounds = 7; // quante immagini hai
+
+    // document.body.addEventListener("click", () => {
+    //   currentBackground++;
+    //   if (currentBackground > totalBackgrounds) {
+    //     currentBackground = 1;
+    //   }
+    //   document.body.style.backgroundImage = `url('assets/back${currentBackground}.png')`;
+    // });
 
     window.addEventListener("resize", updateImages);
     window.addEventListener("load", updateImages);
