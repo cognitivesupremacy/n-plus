@@ -57,7 +57,7 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        color: white;
+        color: rgba(255, 255, 255, 0.9);
         text-align: center;
         font-size: 14px;
         line-height: 1.3;
@@ -72,18 +72,25 @@
       .cs-type {
         top: 27px;
         left: 30px;
+        display: none;
       }
 
       .cs-type,
       .bottom {
         width: calc(100vw - 60px);
         left: 30px;
-        position: absolute;
       }
 
-      .n-type {
+      /* .n-type {
         margin-bottom: 7px;
         width: 100%;
+      } */
+
+      .n-type {
+        top: 30px;
+        /* width: calc(100vw - 60px); */
+        width: 200px;
+        position: absolute;
       }
 
       .bottom-paragraph {
@@ -91,13 +98,14 @@
 
       .bottom {
         bottom: 30px;
+        position: absolute;
 
-        align-items: center;
+        /* align-items: center; */
       }
 
       .email {
         display: block;
-        color: white;
+        color: rgba(255, 255, 255, 0.9);
         text-decoration: none;
         text-transform: uppercase;
       }
@@ -136,13 +144,12 @@
 
   <body>
     <img src="assets/cs.png" class="cs-type" />
-
+    <img src="assets/n+full.png" class="n-type" />
     <div class="bottom">
-      <img src="assets/n+.png" class="n-type" />
       <p class="bottom-paragraph">
-        N+ Industries pioneers neural augmentation, creating cutting-edge
-        technologies that expand, protect, <br class="desktop" />
-        and transform the way the mind interacts with memory and perception.
+        N+ Industries redefines warfare by weaponizing neuroscience,
+        <br class="desktop" />engineering the cognitive infrastructure that will
+        shape tomorrow's global equilibrium.
         <a href="mailto:info@n-plus.industries" class="email"
           >info@n-plus.industries</a
         >
@@ -151,26 +158,26 @@
   </body>
 
   <script>
-    function updateImages() {
-      const nImages = document.querySelectorAll(".n-type");
-      const csImages = document.querySelectorAll(".cs-type");
+    // function updateImages() {
+    //   const nImages = document.querySelectorAll(".n-type");
+    //   const csImages = document.querySelectorAll(".cs-type");
 
-      nImages.forEach((img) => {
-        if (window.innerWidth <= 800) {
-          img.src = "assets/n+-m.png";
-        } else {
-          img.src = "assets/n+.png";
-        }
-      });
+    //   nImages.forEach((img) => {
+    //     if (window.innerWidth <= 800) {
+    //       img.src = "assets/n+-m.png";
+    //     } else {
+    //       img.src = "assets/n+.png";
+    //     }
+    //   });
 
-      csImages.forEach((img) => {
-        if (window.innerWidth <= 800) {
-          img.src = "assets/cs-m.png";
-        } else {
-          img.src = "assets/cs.png";
-        }
-      });
-    }
+    //   csImages.forEach((img) => {
+    //     if (window.innerWidth <= 800) {
+    //       img.src = "assets/cs-m.png";
+    //     } else {
+    //       img.src = "assets/cs.png";
+    //     }
+    //   });
+    // }
 
     // let currentBackground = 1; // parte da 1
     // const totalBackgrounds = 7; // quante immagini hai
@@ -183,7 +190,7 @@
     //   document.body.style.backgroundImage = `url('assets/back${currentBackground}.png')`;
     // });
 
-    window.addEventListener("resize", updateImages);
-    window.addEventListener("load", updateImages);
+    // window.addEventListener("resize", updateImages);
+    // window.addEventListener("load", updateImages);
   </script>
 </html>
