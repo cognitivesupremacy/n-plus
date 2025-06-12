@@ -147,13 +147,97 @@
           position: absolute;
         }
       }
+
+      .content {
+        overflow: scroll;
+      }
+
+      #sonar-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px; /* spazio tra le righe */
+        position: relative;
+
+        background-color: black;
+        padding: 10px;
+        padding-top: 0;
+        width: 90vw;
+        max-width: 800px;
+        text-align: left;
+        max-height: 400px;
+
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: "tnum";
+
+        display: none;
+      }
+
+      .sonar-row {
+        display: flex;
+        width: 100%;
+        gap: 0;
+      }
+
+      .sonar-row span {
+        flex: 1 1 0;
+        text-align: left;
+        padding: 4px 0;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .close-bar {
+        position: absolute;
+        top:0;
+        transform: translateY(-100%);
+        width: 100%;
+        background-color: white;
+        left: 0;
+        color: black;
+        padding: 5px 10px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      @keyframes flash-bg {
+        0% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
     </style>
   </head>
 
   <body>
+
+    <div id="sonar-list">
+      <div class="close-bar">
+        <span>NPLUS</span>
+        <span id="closeIcon" style="cursor: pointer">✕</span>
+      </div>
+      <div class="header sonar-row" style="position: sticky;top: 0;background-color: black;padding-top: 10px;">
+        <span>SONAR+D</span>
+        <span>TIME</span>
+        <span>SESSION</span>
+        <span>NEURAL PROCESSING STREAM</span>
+      </div>
+      <div class="content"></div>
+    </div>
+    
     <img src="assets/cs.png" class="cs-type" />
     <img src="assets/n+full.png" class="n-type" />
     <div class="bottom">
+      <p id="openIcon" style="cursor: pointer; animation: flash-bg 1s steps(1, end) infinite;">MINING SESSION IN PROGRESS</p>
+      <br>
       <p class="bottom-paragraph">
         N+ Industries redefines warfare by weaponizing neuroscience,
         <br class="desktop" />engineering the cognitive infrastructure that will
@@ -199,5 +283,80 @@
 
     // window.addEventListener("resize", updateImages);
     // window.addEventListener("load", updateImages);
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+
+    document.getElementById("openIcon").onclick = function() {
+      document.getElementById("sonar-list").style.display = "flex";
+    };
+
+    document.getElementById("closeIcon").onclick = function() {
+      document.getElementById("sonar-list").style.display = "none";
+    };
+
+    // Configura Supabase
+    const supabaseUrl = "https://vvxdugranihmsbmrfdpf.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ2eGR1Z3JhbmlobXNibXJmZHBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzOTI5ODQsImV4cCI6MjA2NDk2ODk4NH0.a8DNkCkBW5QB8Jt4TozzB46lI0LymOsQAmSysuhrPMI";
+    
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    console.log(supabase);
+    
+    // Funzione per leggere i dati
+    async function getSonarData() {
+      console.log('loaded');
+      
+        const { data, error } = await supabase
+          .from('sonar')
+          .select()
+          .order('session', { ascending: false })
+          .gt('date', '2025-11-06');
+
+        console.log('DATA:', data);
+        console.log('ERROR:', error);
+
+      
+      // Mostra i dati in una lista
+      const list = document.querySelector('#sonar-list .content');
+      list.innerHTML = '';
+      // ...existing code...
+      data.forEach(row => {
+        const div = document.createElement('div');
+        div.className = 'sonar-row';
+        div.style.display = 'flex';
+
+        const neural = document.createElement('span');
+        neural.textContent = `${row.neural_stram}`;
+
+        const session = document.createElement('span');
+        session.textContent = row.session.toString().padStart(4, '0');
+
+        const time = document.createElement('span');
+        time.textContent = `${row.time}`;
+
+        const date = document.createElement('span');
+        date.textContent = `${row.date}`;
+
+        div.appendChild(date);
+        div.appendChild(time);
+        div.appendChild(session);
+        div.appendChild(neural);
+
+        
+        
+
+        list.appendChild(div);
+      });
+      // ...existing code...
+
+      console.log(data);
+      
+    }
+
+    // Chiama la funzione al caricamento della pagina
+    window.addEventListener('DOMContentLoaded', getSonarData);
+    
   </script>
 </html>
