@@ -155,7 +155,6 @@
       #sonar-list {
         display: flex;
         flex-direction: column;
-        gap: 8px; /* spazio tra le righe */
         position: relative;
 
         background-color: black;
@@ -181,7 +180,7 @@
       .sonar-row span {
         flex: 1 1 0;
         text-align: left;
-        padding: 4px 0;
+        padding: 0;
         min-width: 0;
         white-space: nowrap;
         overflow: hidden;
@@ -290,7 +289,12 @@
   <script>
 
     document.getElementById("openIcon").onclick = function() {
-      document.getElementById("sonar-list").style.display = "flex";
+      const sonarList = document.getElementById("sonar-list");
+      sonarList.style.display = "flex";
+      sonarList.style.left = "unset";
+      sonarList.style.top = "unset";
+      sonarList.style.position = sonarList.style.position || "absolute";
+      sonarList.style.zIndex = 1000;
     };
 
     document.getElementById("closeIcon").onclick = function() {
@@ -358,5 +362,38 @@
     // Chiama la funzione al caricamento della pagina
     window.addEventListener('DOMContentLoaded', getSonarData);
     
+    (function() {
+  const dragBar = document.querySelector('.close-bar');
+  const sonarList = document.getElementById('sonar-list');
+  let isDragging = false;
+  let offset = { x: 0, y: 0 };
+
+  dragBar.style.cursor = 'grab';
+
+  dragBar.addEventListener('mousedown', function(e) {
+    isDragging = true;
+    dragBar.style.cursor = 'grabbing';
+    const rect = sonarList.getBoundingClientRect();
+    offset.x = e.clientX - rect.left;
+    offset.y = e.clientY - rect.top;
+    sonarList.style.position = 'absolute';
+    sonarList.style.zIndex = 1000;
+    document.body.style.userSelect = 'none';
+  });
+
+  document.addEventListener('mousemove', function(e) {
+    if (!isDragging) return;
+    sonarList.style.left = (e.clientX - offset.x) + 'px';
+    sonarList.style.top = (e.clientY - offset.y) + 'px';
+  });
+
+  document.addEventListener('mouseup', function() {
+    if (isDragging) {
+      isDragging = false;
+      dragBar.style.cursor = 'grab';
+      document.body.style.userSelect = '';
+    }
+  });
+})();
   </script>
 </html>
