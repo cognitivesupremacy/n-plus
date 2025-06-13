@@ -316,7 +316,6 @@
           .from('sonar')
           .select()
           .order('session', { ascending: false })
-          .gt('date', '2025-11-06');
 
         console.log('DATA:', data);
         console.log('ERROR:', error);
@@ -325,14 +324,19 @@
       // Mostra i dati in una lista
       const list = document.querySelector('#sonar-list .content');
       list.innerHTML = '';
-      // ...existing code...
+
       data.forEach(row => {
         const div = document.createElement('div');
         div.className = 'sonar-row';
         div.style.display = 'flex';
 
         const neural = document.createElement('span');
-        neural.textContent = `${row.neural_stram}`;
+        // Aggiungi "%" se non presente
+        let neuralValue = row.neural_stram || "";
+        if (neuralValue && !neuralValue.includes("%")) {
+          neuralValue += "%";
+        }
+        neural.textContent = '+ ' + neuralValue;
 
         const session = document.createElement('span');
         session.textContent = row.session.toString().padStart(4, '0');
@@ -341,21 +345,19 @@
         time.textContent = `${row.time}`;
 
         const date = document.createElement('span');
-        date.textContent = `${row.date}`;
-
-        div.appendChild(date);
-        div.appendChild(time);
-        div.appendChild(session);
-        div.appendChild(neural);
-
+        date.textContent = `${row.created_at.split('T')[0]}`;
         
-        
+        if (row.created_at.split('T')[0] != "2025-06-11" && row.created_at.split('T')[0] != "2025-06-09" && row.created_at.split('T')[0] != "2025-06-08") {
+          
+          div.appendChild(date);
+          div.appendChild(time);
+          div.appendChild(session);
+          div.appendChild(neural);
+        } else {
+        }
 
         list.appendChild(div);
       });
-      // ...existing code...
-
-      console.log(data);
       
     }
 
